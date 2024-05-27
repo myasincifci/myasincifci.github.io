@@ -1,0 +1,1 @@
+Your project website is available at http://cybertron.cg.tu-berlin.de/p/cgs-ss24/3d-gaussian-splatting. All files inside of your documentation/website folder are mirrored whenever you push something to this folder in your repository. Thus, do not move or rename this folder.
