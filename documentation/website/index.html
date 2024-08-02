@@ -21,6 +21,9 @@
                     <a class="navbar-link" href="#intro">Intro</a>
                 </li>
                 <li class="navbar-item">
+                    <a class="navbar-link" href="#theory">Theory</a>
+                </li>
+                <li class="navbar-item">
                     <a class="navbar-link" href="#images">Images</a>
                 </li>
                 <li class="navbar-item">
@@ -47,31 +50,86 @@
         <div class="row">
 <!--            <div class="one column category" style="text-align: center;">-->
 <!--                <h5 class="docs-header">Teaser Image</h5>-->
-                <img class="u-max-full-width" src="images/teaser.jpg">
-                <p>The basic idea behind 3d guassian splatting is ...</p>
-                <p>The basic idea behind 3d guassian splatting is ...</p>
+                <img class="u-max-full-width" src="images/training.gif">
+                <p>
+                    In Gaussian Splatting we carefully arranging a number of 
+                    multi-variate gaussians in space such that they represent 
+                    a scene. Each gaussians is assigned a color and can be rendered 
+                    by evaluating it's probability density function. By carefully 
+                    tuning each gaussian's parameters to reconstruct ground truth 
+                    views of the scene, it is possible to represent arbitrary scenes 
+                    like the one in the two dimensional example above. Extending this 
+                    to the third dimension is particularly interesting because it 
+                    allows us to render the scene from views that don't exist in the 
+                    ground truth, allowing us to synthesize novel views.
+                    This idea is introduced in the paper "3D Gaussian Splatting for 
+                    Real-Time Radiance Field Rendering" <a href="#1">[1]</a> which we 
+                    have reimplemented using the PyTorch library. The following will
+                    give an overview of the theory and implementation details.
+                </p>
             </div>
     </section>
 
     <div class="docs-section" id="theory">
         <h3 class="section-heading">Theory</h3>
-        <p class="section-description">Let's have a look at the training pipeline ...</p>
+        <p class="section-description">
+            We will divide the method into two sections. First we will have a look 
+            at how 3D gaussians can be rendered on a screen. Then we will think about
+            how we can rearrange them to reconstruct a scene from multiple ground
+            truth views at the same time.
+        </p>
+
+        <h5>Gaussian Formalization</h5>
+            <p>
+                \(G(\pmb{x}) = e^{- \frac{1}{2}(\pmb{x} - \pmb{\mu})^T \pmb{\Sigma}^{-1}(\pmb{x} - \pmb{\mu})}\)
+            </p>
+
+            <h6>Mean</h6>
+            <p>
+                \(\pmb{\mu} = (x,y,z)\) with \(x,y,z \in \mathbb{R}\)
+            </p>
+
+            <h6>Covariance</h6>
+            <p>
+                \(\pmb{\Sigma} \in \mathbb{R}^{3 \times 3}\), \(\pmb{\Sigma} = \mathbf{R}\mathbf{S}\mathbf{S}^T\mathbf{R}^T\)
+            </p>
+
+            <h6>Color</h6>
+            <p>
+                \(c = (r,g,b)\) with \(r,g,b \in [0,1]\)
+            </p>
+            <h6>Opacity</h6>
+            <p>
+                \(o \in [0,1]\)
+            </p>
+
+        <h5>Projection</h5>
+            <h6>Mean</h6>
+            <p>
+                \(\pmb{\mu}'=\begin{bmatrix}x'/z' \\ y'/z'\end{bmatrix} , \begin{bmatrix}x' \\ y'\\ z'\end{bmatrix}= \mathbf K \begin{bmatrix}x \\ y\\ z\end{bmatrix}\)
+            </p>
+
+            <h6>Covariance</h6>
+            <p>Affine Aprroximation:</p>
+            <p>
+                \(\pmb{\Sigma}' = \mathbf{J}\pmb{\Sigma}\mathbf{J}^T\)
+            </p>
 
         <h5>Training Pipeline</h5>
         <p>Training training training</p>
 
         <div class="row">
-            <div class="one-half column category" style="text-align: center;">
+            <div class="column category" style="text-align: center;">
                 <h5 class="docs-header">Training Pipeline</h5>
                 <img class="u-max-full-width" src="images/gaussian_splatting_pipeline.png">
                     <p>Overview of the training pipeline as it is described in <a href="#1">[1]</a>.
                     </p>
             </div>
-            <div class="one-half column category" style="text-align: center;">
+            <!-- <div class="one-half column category" style="text-align: center;">
                 <h5 class="docs-header">Image 2</h5>
                 <img class="u-max-full-width" src="images/empty.jpg">
                     <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</p>
-            </div>
+            </div> -->
         </div>
 
         <div class="row">
