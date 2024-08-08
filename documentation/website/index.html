@@ -131,58 +131,104 @@
         </p>
 
         <h5>Gaussians Formalization</h5>
-        Before we dive deeper into the details we will first formalize how we are representing
-        Gaussians. A Gaussian can be evaluated at a coordinate \(\mathbf{x}\) using it's 
-        probability density function: 
+        <p>
+            Before we dive deeper into the details we will first formalize how we are representing
+            Gaussians. A Gaussian can be evaluated at a coordinate \(\mathbf{x}\) using it's 
+            probability density function: 
 
-        \[G(\pmb{x}) = N e^{- \frac{1}{2}(\pmb{x} - \pmb{\mu})^T \pmb{\Sigma}^{-1}(\pmb{x} - \pmb{\mu})}\]
+            \[G(\pmb{x}) = N e^{- \frac{1}{2}(\pmb{x} - \pmb{\mu})^T \pmb{\Sigma}^{-1}(\pmb{x} - \pmb{\mu})}\]
 
-        with mean:
-        
-        \[\pmb{\mu} = (\mu_x,\mu_y,\mu_z)^T,~\text{where}~ x,y,z \in \mathbb{R}\]
-        
-        and covariance matrix:
-        
-        \[\pmb{\Sigma} \in \mathbb{R}^{3 \times 3}.\]
+            with mean:
+            
+            \[\pmb{\mu} = (\mu_x,\mu_y,\mu_z)^T,~\text{where}~ x,y,z \in \mathbb{R}\]
+            
+            and covariance matrix:
+            
+            \[\pmb{\Sigma} \in \mathbb{R}^{3 \times 3}.\]
 
-        Because the covariance matrix must remain positive semi-definite during the optimization
-        process, it is decomposed into a rotation matrix \(\mathbf{R}\) and a scaling matrix 
-        \(\mathbf{S}\):
+            Because the covariance matrix must remain positive semi-definite during the optimization
+            process, it is decomposed into a rotation matrix \(\mathbf{R}\) and a scaling matrix 
+            \(\mathbf{S}\):
 
-        \[\pmb{\Sigma} = \mathbf{R}\mathbf{S}\mathbf{S}^T\mathbf{R}^T.\]
+            \[\pmb{\Sigma} = \mathbf{R}\mathbf{S}\mathbf{S}^T\mathbf{R}^T.\]
 
-        \(\mathbf{S}\) can be condensed into \(\mathbf{s}=(s_x, s_y, s_z)^T\) and likewise 
-        \(\mathbf{R}\) can be represented by a quaternion \(\mathbf{s}=(q_x, q_y, q_z, q_w)^T\).
+            \(\mathbf{S}\) can be condensed into \(\mathbf{s}=(s_x, s_y, s_z)^T\) and likewise 
+            \(\mathbf{R}\) can be represented by a quaternion \(\mathbf{s}=(q_x, q_y, q_z, q_w)^T\).
 
-        Next, we also need to assign a color value to the Gaussian. In the reference 
-        implementation this is realized using spherical harmonics. This allows to not only 
-        represent a static color value but a viewing angle dependent color. However for the sake 
-        of simplicity we will model the color using a single RGB color value:
-        
-        \[\mathbf{c} = (r,g,b),~\text{where}~ r,g,b \in [0,1].\]
+            Next, we also need to assign a color value to the Gaussian. In the reference 
+            implementation this is realized using spherical harmonics. This allows to not only 
+            represent a static color value but a viewing angle dependent color. However for the sake 
+            of simplicity we will model the color using a single RGB color value:
+            
+            \[\mathbf{c} = (r,g,b),~\text{where}~ r,g,b \in [0,1].\]
 
-        Finally we note that because of the normalization constant \(N\), the opacity of the
-        Gaussian will change with the covariance matrix. Therefore we omit the normalization and
-        instead assign an opacity value:
+            Finally we note that because of the normalization constant \(N\), the opacity of the
+            Gaussian will change with the covariance matrix. Therefore we omit the normalization and
+            instead replace it with an opacity parameter:
 
-        \[o \in [0,1].\]
+            \[o \in [0,1].\]
 
-        As a result we define the following representation of a Gaussian:
+            As a result we define the following representation of a Gaussian:
 
-        \[\mathbf{g} = (\pmb{\mu}, \mathbf{s}, \mathbf{q}, \mathbf{c}, o)^T \in \mathbb{R}^{14}\]
+            \[\mathbf{g} = (\pmb{\mu}, \mathbf{s}, \mathbf{q}, \mathbf{c}, o)^T \in \mathbb{R}^{14}\]
 
-        (Note: \(\mathbf{c}\) and \(o\) are clipped into the correct range during rendering.)
+            (Note: \(\mathbf{c}\) and \(o\) are clipped into the correct range during rendering.)
+        </p>
 
         <h5>Rendering</h5>
-            This section goes over the render process that consists of the projection and rasterization
-            steps:
-
+            <p>
+                This section goes over the render process that consists of the projection and rasterization
+                steps:
+            </p>    
+        
             <h6>Projection</h6>
             <p>
-                
+                Let \(\mathbf{K}\) be the pinhole projection matrix.
+                <!-- \[
+                \mathbf{K} =
+                \begin{bmatrix}
+                1 & 2 & 3\\
+                a & b & c
+                \end{bmatrix}
+                \] -->
+
+                Then the projection of
+                the mean is computed as
+            
+                \[\pmb{\mu}_{\text{2D}} = \begin{bmatrix}x'/z' \\ y'/z'\end{bmatrix} , \begin{bmatrix} \mu_x' \\ \mu_y'\\ \mu_z'\end{bmatrix}= \mathbf K \begin{bmatrix}\mu_x \\ \mu_y\\ \mu_z\end{bmatrix}.\]
+
+                Since the pinhole projection is not an affine transformation, the result of
+                applying it to the covariance will not be a gaussian (see ilustration TODO: add
+                illsutration). Therefore we are performing an affine approximation at the 
+                respective Gaussian's mean with (TODO: cite NWA-Splatting)
+
+                \[ \pmb{\Sigma}_{\text{2D}} = \mathbf{J}\pmb{\Sigma}\mathbf{J}^T \]
+
+                where 
+
+                \[ \mathbf{J}(\pmb{\mu}) = \begin{bmatrix}
+                \frac{f_x}{\mu_z} & 0 & -\frac{f_x\mu_x}{\mu_z^2} \\
+                0 & \frac{f_y}{\mu_z} & -\frac{f_y\mu_y}{\mu_z^2} \\
+                \end{bmatrix}
+                \]
+
+                where \(\mathbf{f} = (f_x, f_y)^T\) is the cameras focal point. <br><br>
+                Note: The calculations above assume that the camera is positioned at the origin.
+                Otherwise both transformations \(\mathbf{K}\) and \(\mathbf{J}\) must be right 
+                hand multiplied with the world-to-camera transform.
             </p>
 
             <h6>Rasterization</h6>
+            Once the Gaussians have been projected to the uv-plane, they can be rasterized by 
+            performing alpha blending. This is done with the following formula:
+
+            \[
+                C(\mathbf{x})=\sum_{i \in \mathcal{N}} c_i \alpha_i \prod_{j=1}^{i-1}\left(1-\alpha_j\right)
+            \]
+
+            It states that the color value \(C\) at a pixel coordinate \(\mathbf{x}\) is computed 
+            by blending each Gaussians color weighted by it's alpha value iterating from the closest
+            to the farthest Gaussian in the set of depth-sorted Gaussians \(\mathcal{N}\).
 
         <h5>Text and Images</h5>
 
