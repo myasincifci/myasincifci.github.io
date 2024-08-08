@@ -139,7 +139,7 @@
 
         with mean:
         
-        \[\pmb{\mu} = (x,y,z),~\text{where}~ x,y,z \in \mathbb{R}\]
+        \[\pmb{\mu} = (\mu_x,\mu_y,\mu_z)^T,~\text{where}~ x,y,z \in \mathbb{R}\]
         
         and covariance matrix:
         
@@ -147,59 +147,42 @@
 
         Because the covariance matrix must remain positive semi-definite during the optimization
         process, it is decomposed into a rotation matrix \(\mathbf{R}\) and a scaling matrix 
-        \(\mathbf{R}\):
+        \(\mathbf{S}\):
 
         \[\pmb{\Sigma} = \mathbf{R}\mathbf{S}\mathbf{S}^T\mathbf{R}^T.\]
 
-        Next we also need to assign a color value to the Gaussian. In the reference 
+        \(\mathbf{S}\) can be condensed into \(\mathbf{s}=(s_x, s_y, s_z)^T\) and likewise 
+        \(\mathbf{R}\) can be represented by a quaternion \(\mathbf{s}=(q_x, q_y, q_z, q_w)^T\).
+
+        Next, we also need to assign a color value to the Gaussian. In the reference 
         implementation this is realized using spherical harmonics. This allows to not only 
         represent a static color value but a viewing angle dependent color. However for the sake 
         of simplicity we will model the color using a single RGB color value:
         
         \[\mathbf{c} = (r,g,b),~\text{where}~ r,g,b \in [0,1].\]
 
-        Finally we note that because of the normalization constant \(N\), the 
+        Finally we note that because of the normalization constant \(N\), the opacity of the
+        Gaussian will change with the covariance matrix. Therefore we omit the normalization and
+        instead assign an opacity value:
+
+        \[o \in [0,1].\]
+
+        As a result we define the following representation of a Gaussian:
+
+        \[\mathbf{g} = (\pmb{\mu}, \mathbf{s}, \mathbf{q}, \mathbf{c}, o)^T \in \mathbb{R}^{14}\]
+
+        (Note: \(\mathbf{c}\) and \(o\) are clipped into the correct range during rendering.)
 
         <h5>Rendering</h5>
-            This section goes over the render that consists of the projection and rasterization
+            This section goes over the render process that consists of the projection and rasterization
             steps:
 
             <h6>Projection</h6>
-
-            <p>
-                \(G(\pmb{x}) = e^{- \frac{1}{2}(\pmb{x} - \pmb{\mu})^T \pmb{\Sigma}^{-1}(\pmb{x} - \pmb{\mu})}\)
-            </p>
-
-            <h6>Mean</h6>
             <p>
                 
             </p>
 
-            <h6>Covariance</h6>
-            <p>
-                
-            </p>
-
-            <h6>Color</h6>
-            <p>
-                
-            </p>
-            <h6>Opacity</h6>
-            <p>
-                \(o \in [0,1]\)
-            </p>
-
-        <h5>Projection</h5>
-            <h6>Mean</h6>
-            <p>
-                \(\pmb{\mu}'=\begin{bmatrix}x'/z' \\ y'/z'\end{bmatrix} , \begin{bmatrix}x' \\ y'\\ z'\end{bmatrix}= \mathbf K \begin{bmatrix}x \\ y\\ z\end{bmatrix}\)
-            </p>
-
-            <h6>Covariance</h6>
-            <p>Affine Aprroximation:</p>
-            <p>
-                \(\pmb{\Sigma}' = \mathbf{J}\pmb{\Sigma}\mathbf{J}^T\)
-            </p>
+            <h6>Rasterization</h6>
 
         <h5>Text and Images</h5>
 
