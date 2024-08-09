@@ -1,5 +1,4 @@
 from typing import List, Optional
-
 import time 
 import math
 import os
@@ -107,10 +106,10 @@ def main():
 
     test_view = get_test_view(root='./nerf_example_data/nerf_synthetic/drums/drums', index=0, W=W, H=H)
 
-    # plt.ion()
-    # figure, (ax1, ax2) = plt.subplots(1,2)
-    # im1 = ax1.matshow(torch.rand(H, W))
-    # im2 = ax2.matshow(test_view['gt_image'])
+    plt.ion()
+    figure, (ax1, ax2) = plt.subplots(1,2)
+    im1 = ax1.matshow(torch.rand(H, W))
+    im2 = ax2.matshow(test_view['gt_image'])
 
     frames = []
     camera_queue = []
@@ -125,15 +124,15 @@ def main():
         with torch.no_grad():
             pred_test = renderer(test_view)
 
-            # im1.set_data(pred_test.detach().cpu())
+            im1.set_data(pred_test.detach().cpu())
 
             if iter % 10 == 0:
                 frames.append((pred_test.detach().cpu().numpy() * 255).astype(np.uint8))
 
-            # im2.set_data(view['gt_image'].detach().cpu())
+            im2.set_data(view['gt_image'].detach().cpu())
 
-        # figure.canvas.draw()
-        # figure.canvas.flush_events()
+        figure.canvas.draw()
+        figure.canvas.flush_events()
         time.sleep(0.1)
 
         loss = criterion(pred, view['gt_image'])

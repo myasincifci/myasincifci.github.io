@@ -22,7 +22,6 @@ class Renderer(nn.Module):
             opcs
         ) = self._project_gaussians(
             mu=self.params['mu'],
-            scales=self.params['scales'],
             fx=camera['focal'],
             fy=camera['focal'],
             cx=camera['W']/2,
@@ -94,7 +93,6 @@ class Renderer(nn.Module):
     def _project_gaussians(
         self,
         mu,
-        scales,
         fx, 
         fy, 
         cx, 
@@ -137,25 +135,24 @@ class Renderer(nn.Module):
 
         return 0.5 * (A + B), 0.5 * (-A + B)
 
-    def _get_radii(self, cov):
-        eigs = self._get_eigenvalues(cov)
+    def _get_radii(self, eigs):
         l1, l2 = eigs[0], eigs[1]
         s = 3
         return s * torch.sqrt(l1), s * torch.sqrt(l2)
 
-    def _get_box(self, mu, cov):
-        N = len(mu)
+    # def _get_box(self, mu, cov):
+    #     N = len(mu)
 
-        r1, r2 = self._get_radii(cov)
+    #     r1, r2 = self._get_radii(cov)
 
-        B = torch.empty((N, 4, 2))
+    #     B = torch.empty((N, 4, 2))
 
-        B[:,0,0] = mu[:,0] - r1; B[:,0,1] = mu[:,1] + r2
-        B[:,1,0] = mu[:,0] + r1; B[:,1,1] = mu[:,1] + r2
-        B[:,3,0] = mu[:,0] - r1; B[:,2,1] = mu[:,1] - r2
-        B[:,2,0] = mu[:,0] + r1; B[:,3,1] = mu[:,1] - r2
+    #     B[:,0,0] = mu[:,0] - r1; B[:,0,1] = mu[:,1] + r2
+    #     B[:,1,0] = mu[:,0] + r1; B[:,1,1] = mu[:,1] + r2
+    #     B[:,3,0] = mu[:,0] - r1; B[:,2,1] = mu[:,1] - r2
+    #     B[:,2,0] = mu[:,0] + r1; B[:,3,1] = mu[:,1] - r2
         
-        return B
+    #     return B
 
     def _get_orientation(self, cov):
         a = cov[:,0,0]; b = cov[:,0,1]; c = cov[:,1,1]
@@ -205,7 +202,7 @@ class Renderer(nn.Module):
 
         N = len(xys)
 
-        r1, r2 = self._get_radii(covs)
+        r1, r2 = self._get_radii(eigs)
 
         box = torch.empty((N, 4, 2))
 
@@ -247,16 +244,16 @@ class Renderer(nn.Module):
         return tile_map
     
     ### Rasterize ##################################################################
-    def _inv_2d(self, A: torch.Tensor):
-        A_inv = A.new_empty(A.shape)
-        A_inv[0,0] = A[1,1]
-        A_inv[0,1] = -A[0,1]
-        A_inv[1,0] = -A[1,0]
-        A_inv[1,1] = A[0,0]
+    # def _inv_2d(self, A: torch.Tensor):
+    #     A_inv = A.new_empty(A.shape)
+    #     A_inv[0,0] = A[1,1]
+    #     A_inv[0,1] = -A[0,1]
+    #     A_inv[1,0] = -A[1,0]
+    #     A_inv[1,1] = A[0,0]
 
-        A_inv *= 1/(A[0,0]*A[1,1]-A[0,1]*A[1,0])
+    #     A_inv *= 1/(A[0,0]*A[1,1]-A[0,1]*A[1,0])
 
-        return A_inv
+    #     return A_inv
 
     def _g_fast(self, x, m, S):
         ''' x: (h*w, 2) matrix
