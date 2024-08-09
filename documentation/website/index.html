@@ -24,17 +24,17 @@
                     <a class="navbar-link" href="#theory">Theory</a>
                 </li>
                 <li class="navbar-item">
-                    <a class="navbar-link" href="#images">Images</a>
+                    <a class="navbar-link" href="#implementation">Implementation</a>
                 </li>
-                <li class="navbar-item">
+                <!-- <li class="navbar-item">
                     <a class="navbar-link" href="#tables">Tables</a>
-                </li>
-                <li class="navbar-item">
+                </li> -->
+                <!-- <li class="navbar-item">
                     <a class="navbar-link" href="#code">Code</a>
-                </li>
-                <li class="navbar-item">
+                </li> -->
+                <!-- <li class="navbar-item">
                     <a class="navbar-link" href="#math">Math</a>
-                </li>
+                </li> -->
                 <li class="navbar-item">
                     <a class="navbar-link" href="#references">References</a>
                 </li>
@@ -70,8 +70,8 @@
             </div>
     </section>
 
-    <div class="docs-section" id="method">
-        <h3 class="section-heading">Method</h3>
+    <div class="docs-section" id="theory">
+        <h3 class="section-heading">Theory</h3>
         <p class="section-description">
             At the center of 3d Gaussian splatting lay two components:
             
@@ -103,13 +103,13 @@
             <div class="column category" style="text-align: center;">
                 <h5 class="docs-header">Training Pipeline</h5>
                 <img class="u-max-full-width" src="images/gaussian_splatting_pipeline.png">
-                    <p>Overview of the training pipeline as it is described in <a href="#1">[1]</a>.
+                    <p>Figure 1: Overview of the training pipeline as it is described in <a href="#1">[1]</a>.
                     </p>
             </div>
         </div>
 
         <p>
-            Figure (TODO: give number) illustrates the optimization procedure 
+            Figure 1 illustrates the optimization procedure 
             step by step:
             <ol>
                 <li>
@@ -127,10 +127,19 @@
                 </li>
             </ol>
             This procedure is repeated until the overall loss is minimized which results
-            in the gaussians representing the original scene.
+            in the gaussians representing the original scene. 
         </p>
 
-        <h5>Gaussians Formalization</h5>
+
+        <p>
+            Note that the training procedure
+            shown in figure 1 also includes an "Adaptive Density Control" component that
+            regulates the amount of gaussians in the scene dynamically. We haven't implemented
+            thios component since it is not integral to the algorithm.
+        </p>
+        
+
+        <h5>Formalization of Gaussians</h5>
         <p>
             Before we dive deeper into the details we will first formalize how we are representing
             Gaussians. A Gaussian can be evaluated at a coordinate \(\mathbf{x}\) using it's 
@@ -229,134 +238,109 @@
             It states that the color value \(C\) at a pixel coordinate \(\mathbf{x}\) is computed 
             by blending each Gaussians color weighted by it's alpha value iterating from the closest
             to the farthest Gaussian in the set of depth-sorted Gaussians \(\mathcal{N}\).
+            The overall transparency \(\alpha_i\) is computed as 
 
-        <h5>Text and Images</h5>
+            \[ \alpha_i = o_i G(x).\]
 
-        <div class="u-pull-right" style="text-align: center; width:300px; margin-left:20px">
-            <h5 id="figure2" class="docs-header">Figure 2</h5>
-            <img class="u-max-full-width" src="images/empty.jpg">
-            <p>I shall not write fancy figure descriptions. I shall not write fancy image descriptions. I shall not write fancy graph descriptions.</p>
-        </div>
+            <h6>Tile Based Rendering</h6>
+            <p>
+                Because the density of a Gaussian outside of a certain range will be very close to zero,
+                it's contribution to the color value of a pixel will be negligible if the pixel's
+                coordinate is outside of that range. With tile based rendering we are exploiting this 
+                property by only including these Gaussians into the computation of a pixels color value
+                that are within three times the standard deviation of that Gaussian.
+            </p>
 
-        <p>
-            This text can float around <a href="#figure2">figure 2</a>.
-            It can also contain linebreaks and new paragraphs.<br>
-            This is how a linebreak looks.
-        </p>
-        <p>
-           Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-        </p>
+            <p>
+                To achieve this, the canvas is first partitioned into tiles. Then an oriented bounding 
+                box is computed to encapsulate each gaussian. Finally the Gaussians are sorted into the 
+                tiles where a Gaussian is assigned to each tile that it's bounding box intersects.
+                Then the pixels color values can be computed on a per tile basis only for the assigned 
+                Gaussians, significantly reducing computational complexity. 
+            </p>
 
-        <p>
-           Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet.
-        </p>
+            <h6>Computing the Bounding-Box</h6>
+            Given a 2x2 Covariance Matrix
 
-        <h5>Moving Images aka Videos</h5>
+            \[\mathbf{A} = \begin{bmatrix}
+                            a & b\\
+                            b & c
+                            \end{bmatrix}\]
 
-        <div class="row">
-            <div class="one-half column category" style="text-align: center;">
-                <h5 class="docs-header">Voronoi Generation</h5>
-                <video class="u-max-full-width" controls>
-                    <source src="videos/voronoi.ogg" type="video/ogg">
-                    Your browser does not support the video tag.
-                </video>
-                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
-            </div>
-            <div class="one-half column category" style="text-align: center;">
-                <h5 class="docs-header">Voronoi Generation</h5>
-                <video class="u-max-full-width" controls>
-                    <source src="videos/voronoi.ogg" type="video/ogg">
-                    Your browser does not support the video tag.
-                </video>
-                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
-            </div>
-        </div>
+            it's eigenvalues can be computed as 
 
-    </div>
+            \[
+                \lambda_1, \lambda_2 = \frac{1}{2} (a + d\pm\sqrt{  a^2 - 2ad + 4b^2 + d^2}).
+            \]
 
-    <div class="docs-section" id="images">
-        <h3 class="section-heading">Images</h3>
-        <p class="section-description">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+            and the orientation can be computed as
 
-        <h5>Images in columns</h5>
+            \[
+                \theta = \begin{cases} 
+                            0 & b = 0 \land a \geq c \\
+                            \frac{\pi}{2} & b = 0 \land a \lt c \\
+                            atan2(\lambda_1 - a, b) & \text{else} 
+                        \end{cases}
+            \]
 
-        <div class="row">
-            <div class="one-half column category" style="text-align: center;">
-                <h5 class="docs-header">Image 1</h5>
-                <img class="u-max-full-width" src="images/empty.jpg">
-                    <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</p>
-            </div>
-            <div class="one-half column category" style="text-align: center;">
-                <h5 class="docs-header">Image 2</h5>
-                <img class="u-max-full-width" src="images/empty.jpg">
-                    <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</p>
-            </div>
-        </div>
+            from which we construct the rotation matrix
 
-        <div class="row">
-            <div class="one-third column category" style="text-align: center;">
-                <h5 class="docs-header">Bunny</h5>
-                <img class="u-max-full-width" src="images/empty.jpg">
-                <p>An empty image.</p>
-                </div>
+            \[\mathbf{R} = \begin{bmatrix}
+                            cos(\theta) & -sin(\theta)\\
+                            sin(\theta) & cos(\theta)
+                            \end{bmatrix}.\]
 
-                <div class="one-third column category" style="text-align: center;">
-                <h5 class="docs-header">Superbunny</h5>
-                <img class="u-max-full-width" src="images/empty.jpg">
-                <p>An second empty image.</p>
-                </div>
+            Then, we construct a rectangle with the radii \(r_1 = \sqrt{\lambda_1}\) and \(r_2 = \sqrt{\lambda_2}\)
+            and rotate it using the rotation matrix to get the final bounding-box.
 
-                <div class="one-third column category" style="text-align: center;">
-                <h5 class="docs-header">Megabunny</h5>
-                <img class="u-max-full-width" src="images/empty.jpg">
-                <p>A super empty image.</p>
-            </div>
-        </div>
-
-        <h5>Text and Images</h5>
-
-        <div class="u-pull-right" style="text-align: center; width:300px; margin-left:20px">
-            <h5 id="figure2" class="docs-header">Figure 2</h5>
-            <img class="u-max-full-width" src="images/empty.jpg">
-            <p>I shall not write fancy figure descriptions. I shall not write fancy image descriptions. I shall not write fancy graph descriptions.</p>
-        </div>
+    <div class="docs-section" id="implementation">
+        <h3 class="section-heading">Implementation</h3>
+        <p class="section-description">The following section gives an overview of our implementation of the 3DGS algorithm.</p>
 
         <p>
-            This text can float around <a href="#figure2">figure 2</a>.
-            It can also contain linebreaks and new paragraphs.<br>
-            This is how a linebreak looks.
+            We have chosen to implemented the complete algorithm in PyTorch
+            because of the following features it provides:
+            
+            <ul>
+                <li>
+                    All standard PyTorch operations have their gradient computation 
+                    preimplemented and using its autograd feature, any calculations 
+                    gradient can be obtained if the calculation is composed of these 
+                    standard operations.
+                </li>
+                <li>
+                    PyTorch provides features like broadcasting that allow to 
+                    vectorize computations and execute them in parallel on 
+                    the GPU.
+                </li>
+                <li>
+                    We can make use of PyTorch's training API.
+                </li>
+            </ul>
+             
+            <p>
+                We have implemented the Renderer class inheriting from nn.Module and 
+                divided the forward pass into three main functons:
+            </p>
+            
+            <p>
+                _project_gaussians: Projects the 3D-Gaussians onto a given camera's 
+                uv-plane and also performs a global sorting operation according to 
+                the Gaussians's depth.
+            </p>
+            
+            
+            <p>
+                _tile_gaussians: Computes bounding-boxes and assigns them to
+                tiles according to them. 
+            </p> 
+
+            <p>
+                _rasterize_tile_fast: Computes color values for all pixels of
+                a fiven tile in a vectorized fashion. This function is called
+                sequentially for each tile. 
+            </p> 
         </p>
-        <p>
-           Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-        </p>
-
-        <p>
-           Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet.
-        </p>
-
-        <h5>Moving Images aka Videos</h5>
-
-        <div class="row">
-            <div class="one-half column category" style="text-align: center;">
-                <h5 class="docs-header">Voronoi Generation</h5>
-                <video class="u-max-full-width" controls>
-                    <source src="videos/voronoi.ogg" type="video/ogg">
-                    Your browser does not support the video tag.
-                </video>
-                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
-            </div>
-            <div class="one-half column category" style="text-align: center;">
-                <h5 class="docs-header">Voronoi Generation</h5>
-                <video class="u-max-full-width" controls>
-                    <source src="videos/voronoi.ogg" type="video/ogg">
-                    Your browser does not support the video tag.
-                </video>
-                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
-            </div>
-        </div>
-
-    </div>
-
 
     <div class="docs-section" id="tables">
         <h3 class="section-heading">Tables</h3>
@@ -461,12 +445,128 @@
         </p>
     </div>
 
-    <div class="docs-section" id="math">
-        <h3 class="section-heading">Math</h3>
-        <p class="section-description">Mathematic formulations such as \(f(x) = 3 \cdot x + \epsilon \cdot y\) are powered by MathJax <a href="#2">[2]</a>. They can be written (amongst other possibilities) in \(\LaTeX\) notation. Besides in-line mathematics, displayed equations are possible:
-\[\nabla \times H = J_c + \frac{\partial D}{\partial t}\]
-        </p>
+    <h5>Images in columns</h5>
+
+    <div class="row">
+        <div class="one-half column category" style="text-align: center;">
+            <h5 class="docs-header">Image 1</h5>
+            <img class="u-max-full-width" src="images/empty.jpg">
+                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</p>
+        </div>
+        <div class="one-half column category" style="text-align: center;">
+            <h5 class="docs-header">Image 2</h5>
+            <img class="u-max-full-width" src="images/empty.jpg">
+                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</p>
+        </div>
     </div>
+
+    <div class="row">
+        <div class="one-third column category" style="text-align: center;">
+            <h5 class="docs-header">Bunny</h5>
+            <img class="u-max-full-width" src="images/empty.jpg">
+            <p>An empty image.</p>
+            </div>
+
+            <div class="one-third column category" style="text-align: center;">
+            <h5 class="docs-header">Superbunny</h5>
+            <img class="u-max-full-width" src="images/empty.jpg">
+            <p>An second empty image.</p>
+            </div>
+
+            <div class="one-third column category" style="text-align: center;">
+            <h5 class="docs-header">Megabunny</h5>
+            <img class="u-max-full-width" src="images/empty.jpg">
+            <p>A super empty image.</p>
+        </div>
+    </div>
+
+    <h5>Text and Images</h5>
+
+    <div class="u-pull-right" style="text-align: center; width:300px; margin-left:20px">
+        <h5 id="figure2" class="docs-header">Figure 2</h5>
+        <img class="u-max-full-width" src="images/empty.jpg">
+        <p>I shall not write fancy figure descriptions. I shall not write fancy image descriptions. I shall not write fancy graph descriptions.</p>
+    </div>
+
+    <p>
+        This text can float around <a href="#figure2">figure 2</a>.
+        It can also contain linebreaks and new paragraphs.<br>
+        This is how a linebreak looks.
+    </p>
+    <p>
+       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+    </p>
+
+    <p>
+       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet.
+    </p>
+
+    <h5>Moving Images aka Videos</h5>
+
+    <div class="row">
+        <div class="one-half column category" style="text-align: center;">
+            <h5 class="docs-header">Voronoi Generation</h5>
+            <video class="u-max-full-width" controls>
+                <source src="videos/voronoi.ogg" type="video/ogg">
+                Your browser does not support the video tag.
+            </video>
+            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
+        </div>
+        <div class="one-half column category" style="text-align: center;">
+            <h5 class="docs-header">Voronoi Generation</h5>
+            <video class="u-max-full-width" controls>
+                <source src="videos/voronoi.ogg" type="video/ogg">
+                Your browser does not support the video tag.
+            </video>
+            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
+        </div>
+    </div>
+
+</div>
+
+<h5>Text and Images</h5>
+
+    <div class="u-pull-right" style="text-align: center; width:300px; margin-left:20px">
+        <h5 id="figure2" class="docs-header">Figure 2</h5>
+        <img class="u-max-full-width" src="images/empty.jpg">
+        <p>I shall not write fancy figure descriptions. I shall not write fancy image descriptions. I shall not write fancy graph descriptions.</p>
+    </div>
+
+    <p>
+        This text can float around <a href="#figure2">figure 2</a>.
+        It can also contain linebreaks and new paragraphs.<br>
+        This is how a linebreak looks.
+    </p>
+    <p>
+       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+    </p>
+
+    <p>
+       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet.
+    </p>
+
+    <h5>Moving Images aka Videos</h5>
+
+    <div class="row">
+        <div class="one-half column category" style="text-align: center;">
+            <h5 class="docs-header">Voronoi Generation</h5>
+            <video class="u-max-full-width" controls>
+                <source src="videos/voronoi.ogg" type="video/ogg">
+                Your browser does not support the video tag.
+            </video>
+            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
+        </div>
+        <div class="one-half column category" style="text-align: center;">
+            <h5 class="docs-header">Voronoi Generation</h5>
+            <video class="u-max-full-width" controls>
+                <source src="videos/voronoi.ogg" type="video/ogg">
+                Your browser does not support the video tag.
+            </video>
+            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
+        </div>
+    </div>
+
+</div>
 
     <div class="docs-section" id="references">
         <h3 class="section-heading">References</h3>
@@ -478,11 +578,6 @@
             <li class="popover-item" id="1">
                 [2] Westoby, Matthew J., et al. "‘Structure-from-Motion’photogrammetry: A low-cost, effective tool for geoscience applications." Geomorphology 179 (2012): 300-314.
             </li>
-          
-            <li class="popover-item" id="9999"> <!--TODO: remove before flight-->
-                [9999] MathJax, <a href="https://www.mathjax.org">https://www.mathjax.org</a>, last retrieved 09-2015
-            </li>
-            
         </ul>
     </div>
 
