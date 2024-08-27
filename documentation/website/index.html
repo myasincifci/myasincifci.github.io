@@ -157,7 +157,8 @@
 
             Because the covariance matrix must remain positive semi-definite during the optimization
             process, it is decomposed into a rotation matrix \(\mathbf{R}\) and a scaling matrix 
-            \(\mathbf{S}\):
+            \(\mathbf{S}\) which can be optimzed without a constraint and from 
+            which a positive semi-definite covariance matrix can be reconstructed:
 
             \[\pmb{\Sigma} = \mathbf{R}\mathbf{S}\mathbf{S}^T\mathbf{R}^T.\]
 
@@ -171,9 +172,10 @@
             
             \[\mathbf{c} = (r,g,b),~\text{where}~ r,g,b \in [0,1].\]
 
-            Finally we note that because of the normalization constant \(N\), the opacity of the
-            Gaussian will change with the covariance matrix. Therefore we omit the normalization and
-            instead replace it with an opacity parameter:
+            Finally we note that because of the normalization constant \(N\), 
+            the opacity of the Gaussian will change with it's covariance matrix. 
+            To disentangle the opacity from the covariance we omit the 
+            normalization and instead replace it with an opacity parameter:
 
             \[o \in [0,1].\]
 
@@ -309,8 +311,8 @@
                     standard operations.
                 </li>
                 <li>
-                    PyTorch provides features like broadcasting that allow to 
-                    vectorize computations and execute them in parallel on 
+                    PyTorch provides features like broadcasting that allow 
+                    vectorization of computations to execute them in parallel on 
                     the GPU.
                 </li>
                 <li>
@@ -319,27 +321,51 @@
             </ul>
              
             <p>
-                We have implemented the Renderer class inheriting from nn.Module and 
-                divided the forward pass into three main functons:
+                We have implemented a Renderer as a torch module by inheriting 
+                from nn.Module and divided the forward pass into three main 
+                functons:
             </p>
             
             <p>
-                _project_gaussians: Projects the 3D-Gaussians onto a given camera's 
-                uv-plane and also performs a global sorting operation according to 
-                the Gaussians's depth.
-            </p>
-            
-            
+                <b>_project_gaussians</b>: Projects the 3D-Gaussians onto a 
+                given camera's uv-plane and also performs a global sorting 
+                operation according to the Gaussians's depth. 
             <p>
-                _tile_gaussians: Computes bounding-boxes and assigns them to
-                tiles according to them. 
+                <b>_tile_gaussians</b>: Computes bounding-boxes and assigns them 
+                to tiles according to them. Produces a tile-map which contains 
+                the gaussians assigned to each tile.
             </p> 
 
             <p>
-                _rasterize_tile_fast: Computes color values for all pixels of
-                a fiven tile in a vectorized fashion. This function is called
-                sequentially for each tile. 
+                <b>_rasterize_tile_fast</b>: Computes color values for all 
+                pixels of a fiven tile in a vectorized fashion. This function is 
+                called sequentially for each tile. 
             </p> 
+
+            <p>
+                <p>
+                All operations can be implemented according to (TODO: section
+                theory) using standard pytorch operations like torch.matmul, 
+                torch.mul, torch.sort and others which makes the rendering
+                module automatically differentiable. In the next step we have
+                implemented the training pipeline shown in (TODO: fig num) using 
+                PyTorch's training API where we can instanciate and call the 
+                renderer as a standard Pytorch module.
+                </p>
+            </p>
+        </p>
+
+        <h5>Limitations</h5>
+        <p>
+            A limiting factor of our implementation is that we are only 
+            vectorizing the rasterization on a per-tile basis and sequentially
+            call <b>_rasterize_tile_fast</b> on each tile. This is due to the 
+            fact that there is a varying amount of gaussians assigned to each 
+            tile which results in a jagged array for the tile-map. To our 
+            knowleadge PyTorch does not support vectorization of jagged arrays 
+            via torch.vmap or other ways, which forces us to perform the 
+            computation sequentially. This leads to a significantly lower 
+            execution speed compared to the reference implementation.
         </p>
 
     <div class="docs-section" id="results">
