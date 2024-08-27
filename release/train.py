@@ -1,3 +1,4 @@
+import argparse
 from typing import List, Optional
 import time 
 import math
@@ -89,7 +90,7 @@ def get_test_view(root, index, W, H):
 
     return camera
 
-def main():
+def main(args: argparse.Namespace):
     torch.backends.cudnn.benchmark = True
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -98,38 +99,34 @@ def main():
 
     params = init_parameters(N, device)   
 
-    renderer = Renderer(params=params, device=device)
-    renderer = torch.compile(renderer, mode="reduce-overhead")
+    renderer = Renderer(params=params, device=device, tile_size=args.tile_size)
 
     # Load scene
-    scene = init_scene(root='./nerf_example_data/nerf_synthetic/drums/drums')
+    scene = init_scene(root=f'./nerf_synthetic/{args.dataset}')
 
     criterion = torch.nn.L1Loss()
     optimizer = torch.optim.Adam(params=renderer.parameters(), lr=1e-3)
 
-    test_view = get_test_view(root='./nerf_example_data/nerf_synthetic/drums/drums', index=0, W=W, H=H)
+    test_view = get_test_view(root=f'./nerf_synthetic/{args.dataset}', index=0, W=W, H=H)
 
     plt.ion()
     figure, (ax1, ax2) = plt.subplots(1,2)
     im1 = ax1.matshow(torch.rand(H, W))
+    ax1.set_title('Test View')
     im2 = ax2.matshow(test_view['gt_image'])
+    ax2.set_title('Test GT')
 
     frames = []
     camera_queue = []
     for iter in tqdm(range(5_000)):
 
-
-        if iter == 10 and profiler: torch.cuda.cudart().cudaProfilerStart()
-        if iter >= 10 and profiler: torch.cuda.nvtx.range_push("iteration{}".format(iter))
-
-
         view = get_view(scene, W, H, camera_queue)
 
         optimizer.zero_grad()
 
-        if iter >= 10 and profiler: torch.cuda.nvtx.range_push("forward")
+        forward_start = time.time()
         pred = renderer(view)
-        if iter >= 10 and profiler: torch.cuda.nvtx.range_pop()
+        forward_end = time.time()
 
         pred[pred.isnan() | pred.isinf()] = 0.
 
@@ -141,39 +138,35 @@ def main():
             if iter % 10 == 0:
                 frames.append((pred_test.detach().cpu().numpy() * 255).astype(np.uint8))
 
-            im2.set_data(view['gt_image'].detach().cpu())
-
         figure.canvas.draw()
         figure.canvas.flush_events()
 
         loss = criterion(pred, view['gt_image'])
         
-        if iter >= 10 and profiler: torch.cuda.nvtx.range_push("backward")
+        backward_start = time.time()
         loss.backward()
-        if iter >= 10 and profiler: torch.cuda.nvtx.range_pop()
+        backward_end = time.time()
 
-        # torch.nn.utils.clip_grad_value_(renderer.parameters(), clip_value=10.0)
+        # Filter inf and nan values 
         for param in renderer.parameters():
             param.grad[param.grad.isnan()] = 0.
             param.grad[param.grad.isinf()] = 0.
 
-        if iter >= 10 and profiler: torch.cuda.nvtx.range_push("opt.step()")
         optimizer.step()
-        if iter >= 10 and profiler: torch.cuda.nvtx.range_pop()
 
-        # pop iteration range
-        if iter >= 10 and profiler: torch.cuda.nvtx.range_pop()
+        print(f'Iter: {iter}, Fwd.: {(forward_end - forward_start):.3f}s, Bckwd.: {(backward_end - backward_start):.3f}s')
+        print(f'Loss: {loss.item()}, Grad. Norms: {[p.abs().norm().item() for p in renderer.parameters()]}')
 
-        print(f'Iter: {iter}, Loss: {loss.item()}, Grad. Norms: {[p.abs().norm().item() for p in renderer.parameters()]}')
-
-    torch.cuda.cudart().cudaProfilerStop()
 
     # save them as a gif with PIL
     frames = [Image.fromarray(frame) for frame in frames]
     out_dir = os.path.join(os.getcwd(), "renders")
     os.makedirs(out_dir, exist_ok=True)
+    frames[-1].save(
+        f"{out_dir}/{args.dataset}/final.png",
+    )
     frames[0].save(
-        f"{out_dir}/training.gif",
+        f"{out_dir}/{args.dataset}/training-{N}.gif",
         save_all=True,
         append_images=frames[1:],
         optimize=False,
@@ -184,4 +177,11 @@ def main():
     plt.show()
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--tile-size', type=int, dest='tile_size', default=32)
+    parser.add_argument('--dataset', type=str, dest='dataset', 
+                        default='drums', choices=['drums', 'lego'])
+
+    args = parser.parse_args()
+
+    main(args)

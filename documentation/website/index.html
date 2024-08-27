@@ -93,7 +93,7 @@
 
              
             Given these two, the objective is to optimize the values of 
-            the gaussians's parameters s.t. they are maximally similar to 
+            the Gaussians' parameters s.t. they are maximally similar to 
             the ground truth images when rendered by each of the cameras.
         </p>
 
@@ -332,17 +332,17 @@
             </p>
             
             <p>
-                <b>_project_gaussians</b>: Projects the 3D-Gaussians onto a 
+                <code>_project_gaussians</code>: Projects the 3D-Gaussians onto a 
                 given camera's uv-plane and also performs a global sorting 
-                operation according to the Gaussians's depth. 
+                operation according to the Gaussians' depth. 
             <p>
-                <b>_tile_gaussians</b>: Computes bounding-boxes and assigns them 
+                <code>_tile_gaussians</code>: Computes bounding-boxes and assigns them 
                 to tiles according to them. Produces a tile-map which contains 
                 the gaussians assigned to each tile.
             </p> 
 
             <p>
-                <b>_rasterize_tile_fast</b>: Computes color values for all 
+                <code>_rasterize_tile_fast</code>: Computes color values for all 
                 pixels of a fiven tile in a vectorized fashion. This function is 
                 called sequentially for each tile. 
             </p> 
@@ -377,63 +377,75 @@
     <div class="docs-section" id="results">
         <h3 class="section-heading">Results</h3>
         <p class="section-description">
-            In this section we showcase some of the results that we have produced:
-
-
+            In this section we showcase some of the experiments and their results:
         </p>
-        <div class="row">
-            <div class="one-half column category" style="text-align: center;">
-                <h5 class="docs-header">Table 1</h5>
-                <table class="u-full-width">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Value</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Laplace</td>
-                            <td>26</td>
-                            <td>---</td>
-                        </tr>
-                        <tr>
-                            <td>Beltrami</td>
-                            <td>42</td>
-                            <td>n/a</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+        <h5>Experiments</h5>
+        <p>
+            To evaluate our implementation, we are runnining experiments on some of 
+            the NeRF Synthetic Datasets <a href="#4">[4]</a>. All experiments are 
+            perfomed at a resolution of 512 x 512 pixels with 5,000 Gaussians 
+            whose means are randomly initialized and remaining parameters are 
+            set constant. We are using an RTX 2070 Super with 8GB of video memory.
+        </p>
+
+        <h6>Performance</h6>
+            <p>
+                First we are evaluating the perfomance of the forward and 
+                backward passes at various tile sizes:
+            </p>
+
+            <div class="row">
+                <div class="seven column category" style="text-align: center;">
+                    <h5 class="docs-header">Table 1</h5>
+                    <table class="u-full-width">
+                        <thead>
+                            <tr>
+                                <th>Tile Size</th>
+                                <th>Mean Forward</th>
+                                <th>Mean Backward</th>
+                                <th>Mean Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>8</td>
+                                <td>1.304s</td>
+                                <td>1.357s</td>
+                                <td>2.661s</td>
+                            </tr>
+                            <tr>
+                                <td>16</td>
+                                <td>0.503s</td>
+                                <td>0.397s</td>
+                                <td>0.9s</td>
+                            </tr>
+                            <tr>
+                                <td><b>32</b></td>
+                                <td><b>0.362s</b></td>
+                                <td><b>0.472s</b></td>
+                                <td><b>0.834s</b></td>
+                            </tr>
+                            <tr>
+                                <td>64</td>
+                                <td>0.471s</td>
+                                <td>1.148s</td>
+                                <td>1.619s</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>
+                    We are measuring the best overall perfomance at a tile size of 32.
+                </p>
+
             </div>
-            <div class="one-half column category" style="text-align: center;">
-                <h5 class="docs-header">Table 2</h5>
-                <table class="u-full-width">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Value</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Laplace</td>
-                            <td>26</td>
-                            <td>---</td>
-                        </tr>
-                        <tr>
-                            <td>Beltrami</td>
-                            <td>42</td>
-                            <td>n/a</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+              
+        <h6>Qualitative Results</h6>
 
         
-    <div class="docs-section" id="code">
+    <!-- <div class="docs-section" id="code">
         <h3 class="section-heading">Code</h3>
         <p class="section-description">At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet.</p>
         <pre>
@@ -452,7 +464,7 @@
         </p>
     </div>
 
-    <h5>Images in columns</h5>
+    <h5>Images in columns</h5> -->
 
     <div class="docs-section" id="references">
         <h3 class="section-heading">References</h3>
@@ -467,6 +479,10 @@
 
             <li class="popover-item" id="3">
                 [3] Zwicker, Matthias, et al. "EWA splatting." IEEE Transactions on Visualization and Computer Graphics 8.3 (2002): 223-238.
+            </li>
+
+            <li class="popover-item" id="3">
+                [4] Mildenhall, Ben, et al. "Nerf: Representing scenes as neural radiance fields for view synthesis." Communications of the ACM 65.1 (2021): 99-106.
             </li>
         </ul>
     </div>
