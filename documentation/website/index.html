@@ -101,7 +101,7 @@
 
         <div class="row">
             <div class="column category" style="text-align: center;">
-                <h5 class="docs-header">Training Pipeline</h5>
+                <h5 id=figure1 class="docs-header">Training Pipeline</h5>
                 <img class="u-max-full-width" src="images/gaussian_splatting_pipeline.png">
                     <p>Figure 1: Overview of the training pipeline as it is described in <a href="#1">[1]</a>.
                     </p>
@@ -134,16 +134,16 @@
         <p>
             Note that the training procedure
             shown in figure 1 also includes an "Adaptive Density Control" component that
-            regulates the amount of gaussians in the scene dynamically. We haven't implemented
-            thios component since it is not integral to the algorithm.
+            regulates the amount of gaussians in the scene dynamically. For the sake of simplicity, 
+            we haven't implemented this component since it is not integral to the algorithm.
         </p>
         
 
         <h5>Formalization of Gaussians</h5>
         <p>
-            Before we dive deeper into the details we will first formalize how we are representing
-            Gaussians. A Gaussian can be evaluated at a coordinate \(\mathbf{x}\) using it's 
-            probability density function: 
+            Before diving deeper into the theorethical details, we will first formalize how we are 
+            representing Gaussians: A Gaussian can be evaluated at a coordinate \(\mathbf{x}\) using 
+            it's probability density function: 
 
             \[G(\pmb{x}) = N e^{- \frac{1}{2}(\pmb{x} - \pmb{\mu})^T \pmb{\Sigma}^{-1}(\pmb{x} - \pmb{\mu})}\]
 
@@ -151,20 +151,26 @@
             
             \[\pmb{\mu} = (\mu_x,\mu_y,\mu_z)^T,~\text{where}~ x,y,z \in \mathbb{R}\]
             
-            and covariance matrix:
+            covariance matrix:
             
-            \[\pmb{\Sigma} \in \mathbb{R}^{3 \times 3}.\]
+            \[\pmb{\Sigma} \in \mathbb{R}^{3 \times 3}\]
 
-            Because the covariance matrix must remain positive semi-definite during the optimization
-            process, it is decomposed into a rotation matrix \(\mathbf{R}\) and a scaling matrix 
-            \(\mathbf{S}\) which can be optimzed without a constraint and from 
-            which a positive semi-definite covariance matrix can be reconstructed:
+            and normalization factor \(N\).
+
+        </p>
+        <p>
+            Because the covariance matrix must be positive semi-definite, this property needs to be 
+            upheld during the optimization process. To achieve this it is decomposed into a rotation 
+            matrix \(\mathbf{R}\) and a scaling matrix \(\mathbf{S}\) which can be optimzed 
+            independently without a constraint and from which a positive semi-definite covariance 
+            matrix can be reconstructed:
 
             \[\pmb{\Sigma} = \mathbf{R}\mathbf{S}\mathbf{S}^T\mathbf{R}^T.\]
 
             \(\mathbf{S}\) can be condensed into \(\mathbf{s}=(s_x, s_y, s_z)^T\) and likewise 
             \(\mathbf{R}\) can be represented by a quaternion \(\mathbf{s}=(q_x, q_y, q_z, q_w)^T\).
-
+        </p>
+        <p>
             Next, we also need to assign a color value to the Gaussian. In the reference 
             implementation this is realized using spherical harmonics. This allows to not only 
             represent a static color value but a viewing angle dependent color. However for the sake 
@@ -194,24 +200,23 @@
         
             <h6>Projection</h6>
             <p>
-                Let \(\mathbf{K}\) be the pinhole projection matrix.
-                <!-- \[
-                \mathbf{K} =
-                \begin{bmatrix}
-                1 & 2 & 3\\
-                a & b & c
-                \end{bmatrix}
-                \] -->
-
-                Then the projection of
+                Let \(\mathbf{K}\) be the pinhole projection matrix. Then the projection of
                 the mean is computed as
             
                 \[\pmb{\mu}_{\text{2D}} = \begin{bmatrix}x'/z' \\ y'/z'\end{bmatrix} , \begin{bmatrix} \mu_x' \\ \mu_y'\\ \mu_z'\end{bmatrix}= \mathbf K \begin{bmatrix}\mu_x \\ \mu_y\\ \mu_z\end{bmatrix}.\]
 
+                <div class="u-pull-right" style="text-align: center; width:300px; margin-left:20px">
+                    <h5 id="figure2" class="docs-header">Figure 2</h5>
+                    <img class="u-max-full-width" src="images/ewa_splatting.png">
+                    <p>Applying \(\mathbf{K}\) directly (Figure from <a href="#3">[3]</a>)</p>
+                </div>
+
                 Since the pinhole projection is not an affine transformation, the result of
-                applying it to the covariance will not be a gaussian (see ilustration TODO: add
-                illsutration). Therefore we are performing an affine approximation at the 
-                respective Gaussian's mean with (TODO: cite NWA-Splatting)
+                applying it directly to the 3D-Gaussian will not result in a 2D-Gaussian 
+                (as illustrated in <a href="#figure2">Figure 2</a>). 
+
+                Therefore we are performing an affine approximation at the respective Gaussian's 
+                mean with:
 
                 \[ \pmb{\Sigma}_{\text{2D}} = \mathbf{J}\pmb{\Sigma}\mathbf{J}^T \]
 
@@ -223,7 +228,7 @@
                 \end{bmatrix}
                 \]
 
-                where \(\mathbf{f} = (f_x, f_y)^T\) is the cameras focal point. <br><br>
+                and \(\mathbf{f} = (f_x, f_y)^T\) is the cameras focal point (as described in <a href="#3">[3]</a>). <br><br>
                 Note: The calculations above assume that the camera is positioned at the origin.
                 Otherwise both transformations \(\mathbf{K}\) and \(\mathbf{J}\) must be right 
                 hand multiplied with the world-to-camera transform.
@@ -234,7 +239,7 @@
             performing alpha blending. This is done with the following formula:
 
             \[
-                C(\mathbf{x})=\sum_{i \in \mathcal{N}} c_i \alpha_i \prod_{j=1}^{i-1}\left(1-\alpha_j\right)
+                C(\mathbf{x})=\sum_{i \in \mathcal{N}} c_i \alpha_i \prod_{j=1}^{i-1}\left(1-\alpha_j\right).
             \]
 
             It states that the color value \(C\) at a pixel coordinate \(\mathbf{x}\) is computed 
@@ -250,12 +255,12 @@
                 it's contribution to the color value of a pixel will be negligible if the pixel's
                 coordinate is outside of that range. With tile based rendering we are exploiting this 
                 property by only including these Gaussians into the computation of a pixels color value
-                that are within three times the standard deviation of that Gaussian.
+                that are within approximately three times the standard deviation of that Gaussian.
             </p>
 
             <p>
-                To achieve this, the canvas is first partitioned into tiles. Then an oriented bounding 
-                box is computed to encapsulate each gaussian. Finally the Gaussians are sorted into the 
+                To achieve this, the canvas is first partitioned into square tiles. An oriented bounding 
+                box is computed to encapsulate every Gaussian and the Gaussians are sorted into the 
                 tiles where a Gaussian is assigned to each tile that it's bounding box intersects.
                 Then the pixels color values can be computed on a per tile basis only for the assigned 
                 Gaussians, significantly reducing computational complexity. 
@@ -307,8 +312,8 @@
                 <li>
                     All standard PyTorch operations have their gradient computation 
                     preimplemented and using its autograd feature, any calculations 
-                    gradient can be obtained if the calculation is composed of these 
-                    standard operations.
+                    gradient can be obtained automatically if the calculation is 
+                    composed of these standard operations.
                 </li>
                 <li>
                     PyTorch provides features like broadcasting that allow 
@@ -344,11 +349,12 @@
 
             <p>
                 <p>
-                All operations can be implemented according to (TODO: section
-                theory) using standard pytorch operations like torch.matmul, 
-                torch.mul, torch.sort and others which makes the rendering
+                All operations can be implemented following the calculation in the
+                <a href="#theory">theory section</a> 
+                using standard pytorch operations like torch.matmul, 
+                torch.mul, torch.sort, and others which makes the rendering
                 module automatically differentiable. In the next step we have
-                implemented the training pipeline shown in (TODO: fig num) using 
+                implemented the training pipeline shown in <a href="#figure1">Figure 1</a> using 
                 PyTorch's training API where we can instanciate and call the 
                 renderer as a standard Pytorch module.
                 </p>
@@ -426,36 +432,7 @@
             </div>
         </div>
 
-        <div class="row">
-            <div class="one-half column category">
-                <h5 class="docs-header">Unordered Lists</h5>
-                <ul>
-                    <li>Unordered lists have basic styles</li>
-                    <li>
-                      They use the circle list style
-                      <ul>
-                        <li>Nested lists styled to feel right</li>
-                        <li>Can nest either type of list into the other</li>
-                      </ul>
-                    </li>
-                </ul>
-            </div>
-            <div class="one-half column category">
-                <h5 class="docs-header">Ordered Lists</h5>
-                <ol>
-                    <li>Ordered lists also have basic styles</li>
-                    <li>
-                      They use the decimal list style
-                      <ul>
-                        <li>Ordered and unordered can be nested</li>
-                      </ul>
-                    </li>
-                    <li>Last list item just for the fun</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-
+        
     <div class="docs-section" id="code">
         <h3 class="section-heading">Code</h3>
         <p class="section-description">At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet.</p>
@@ -477,127 +454,6 @@
 
     <h5>Images in columns</h5>
 
-    <div class="row">
-        <div class="one-half column category" style="text-align: center;">
-            <h5 class="docs-header">Image 1</h5>
-            <img class="u-max-full-width" src="images/empty.jpg">
-                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</p>
-        </div>
-        <div class="one-half column category" style="text-align: center;">
-            <h5 class="docs-header">Image 2</h5>
-            <img class="u-max-full-width" src="images/empty.jpg">
-                <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</p>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="one-third column category" style="text-align: center;">
-            <h5 class="docs-header">Bunny</h5>
-            <img class="u-max-full-width" src="images/empty.jpg">
-            <p>An empty image.</p>
-            </div>
-
-            <div class="one-third column category" style="text-align: center;">
-            <h5 class="docs-header">Superbunny</h5>
-            <img class="u-max-full-width" src="images/empty.jpg">
-            <p>An second empty image.</p>
-            </div>
-
-            <div class="one-third column category" style="text-align: center;">
-            <h5 class="docs-header">Megabunny</h5>
-            <img class="u-max-full-width" src="images/empty.jpg">
-            <p>A super empty image.</p>
-        </div>
-    </div>
-
-    <h5>Text and Images</h5>
-
-    <div class="u-pull-right" style="text-align: center; width:300px; margin-left:20px">
-        <h5 id="figure2" class="docs-header">Figure 2</h5>
-        <img class="u-max-full-width" src="images/empty.jpg">
-        <p>I shall not write fancy figure descriptions. I shall not write fancy image descriptions. I shall not write fancy graph descriptions.</p>
-    </div>
-
-    <p>
-        This text can float around <a href="#figure2">figure 2</a>.
-        It can also contain linebreaks and new paragraphs.<br>
-        This is how a linebreak looks.
-    </p>
-    <p>
-       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-    </p>
-
-    <p>
-       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet.
-    </p>
-
-    <h5>Moving Images aka Videos</h5>
-
-    <div class="row">
-        <div class="one-half column category" style="text-align: center;">
-            <h5 class="docs-header">Voronoi Generation</h5>
-            <video class="u-max-full-width" controls>
-                <source src="videos/voronoi.ogg" type="video/ogg">
-                Your browser does not support the video tag.
-            </video>
-            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
-        </div>
-        <div class="one-half column category" style="text-align: center;">
-            <h5 class="docs-header">Voronoi Generation</h5>
-            <video class="u-max-full-width" controls>
-                <source src="videos/voronoi.ogg" type="video/ogg">
-                Your browser does not support the video tag.
-            </video>
-            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
-        </div>
-    </div>
-
-</div>
-
-<h5>Text and Images</h5>
-
-    <div class="u-pull-right" style="text-align: center; width:300px; margin-left:20px">
-        <h5 id="figure2" class="docs-header">Figure 2</h5>
-        <img class="u-max-full-width" src="images/empty.jpg">
-        <p>I shall not write fancy figure descriptions. I shall not write fancy image descriptions. I shall not write fancy graph descriptions.</p>
-    </div>
-
-    <p>
-        This text can float around <a href="#figure2">figure 2</a>.
-        It can also contain linebreaks and new paragraphs.<br>
-        This is how a linebreak looks.
-    </p>
-    <p>
-       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-    </p>
-
-    <p>
-       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet.
-    </p>
-
-    <h5>Moving Images aka Videos</h5>
-
-    <div class="row">
-        <div class="one-half column category" style="text-align: center;">
-            <h5 class="docs-header">Voronoi Generation</h5>
-            <video class="u-max-full-width" controls>
-                <source src="videos/voronoi.ogg" type="video/ogg">
-                Your browser does not support the video tag.
-            </video>
-            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
-        </div>
-        <div class="one-half column category" style="text-align: center;">
-            <h5 class="docs-header">Voronoi Generation</h5>
-            <video class="u-max-full-width" controls>
-                <source src="videos/voronoi.ogg" type="video/ogg">
-                Your browser does not support the video tag.
-            </video>
-            <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diamneses voluptua.</p>
-        </div>
-    </div>
-
-</div>
-
     <div class="docs-section" id="references">
         <h3 class="section-heading">References</h3>
         <ul class="popover-list">
@@ -605,8 +461,12 @@
                 [1] Kerbl, Bernhard, et al. "3D Gaussian Splatting for Real-Time Radiance Field Rendering." ACM Trans. Graph. 42.4 (2023): 139-1.
             </li>
 
-            <li class="popover-item" id="1">
+            <li class="popover-item" id="2">
                 [2] Westoby, Matthew J., et al. "‘Structure-from-Motion’photogrammetry: A low-cost, effective tool for geoscience applications." Geomorphology 179 (2012): 300-314.
+            </li>
+
+            <li class="popover-item" id="3">
+                [3] Zwicker, Matthias, et al. "EWA splatting." IEEE Transactions on Visualization and Computer Graphics 8.3 (2002): 223-238.
             </li>
         </ul>
     </div>
