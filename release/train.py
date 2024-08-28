@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 from typing import List, Optional
 import time 
 import math
@@ -162,11 +163,17 @@ def main(args: argparse.Namespace):
     frames = [Image.fromarray(frame) for frame in frames]
     out_dir = os.path.join(os.getcwd(), "renders")
     os.makedirs(out_dir, exist_ok=True)
+    path = f"{out_dir}/{args.dataset}"
+    Path(path).mkdir(parents=True, exist_ok=True)
     frames[-1].save(
-        f"{out_dir}/{args.dataset}/final.png",
+        os.path.join(path, "final.png")
+    )
+    gt = Image.fromarray(view['gt_image'])
+    gt.save(
+        os.path.join(path, "ground_truth.png")
     )
     frames[0].save(
-        f"{out_dir}/{args.dataset}/training-{N}.gif",
+        os.path.join(path, f"training-{N}.gif"),
         save_all=True,
         append_images=frames[1:],
         optimize=False,
@@ -180,7 +187,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--tile-size', type=int, dest='tile_size', default=32)
     parser.add_argument('--dataset', type=str, dest='dataset', 
-                        default='drums', choices=['drums', 'lego'])
+                        default='drums', choices=['chair', 'drums', 'ficus', 'hotdog', 'lego', 'materials', 'mic', 'ship'])
 
     args = parser.parse_args()
 
