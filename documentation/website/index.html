@@ -443,28 +443,71 @@
             </div>
               
         <h6>Qualitative Results</h6>
-
+            <p>
+                Below we are showcasing some of the results we have produced and discussing them. 
+                All experiments are following the previously mentioned settings and are run for 
+                5,000 iterations each. 
+            </p>
+        <div class="row">
+            <div class="one-third column category" style="text-align: center;">
+                <h5 class="docs-header">Training</h5>
+                <img class="u-max-full-width" src="images/hotdog/training-10000.gif">
+                </div>
+    
+                <div class="one-third column category" style="text-align: center;">
+                <h5 class="docs-header">Final</h5>
+                <img class="u-max-full-width" src="images/hotdog/final.png">
+                </div>
+    
+                <div class="one-third column category" style="text-align: center;">
+                <h5 class="docs-header">Ground Truth</h5>
+                <img class="u-max-full-width" src="images/hotdog/ground_truth.png">
+            </div>
+        </div>  
         
-    <!-- <div class="docs-section" id="code">
-        <h3 class="section-heading">Code</h3>
-        <p class="section-description">At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata ita sanctus est Lorem ipsum dolor sit amet.</p>
-        <pre>
-            <code>def load_image(nr, flat=True):
-    img = io.imread(get_path(nr), as_grey=True)
-    if flat:
-        # print(img.shape)
-        img = img.reshape(-1)
-        # print(np.amin(img), np.amax(img))
-    print("Loaded img " + str(nr))
-    return img
-</code>
-        </pre>
         <p>
-            Inline code snippets <code>are also possible</code> as this beautiful <code>super code i++; 0x34</code> shows.
+            One noticable difference in this example is that the specular reflections on the 
+            sauces next to the hotdog seem to be missing. This kind of direction specific
+            coloring is modeled with the use of spehiracl harmonics in the reference 
+            implementation. Another noticable difference is that finer details like the 
+            texture of the bread are not very well represented in our reconstruction.
+            Due to hardware limitations we are using a relatively small amount of Gaussians. 
+            This is likely causing smaller details to be "overreconstructed" by a single 
+            larger Gaussian. This case is handled by the "adaptive density controll" component 
+            in the reference implementation by splitting the Gaussian. Similar things 
+            are observable in the remaining examples.
         </p>
-    </div>
 
-    <h5>Images in columns</h5> -->
+        <div class="row">
+            <div class="one-third column category" style="text-align: center;">
+                <h5 class="docs-header">Training</h5>
+                <img class="u-max-full-width" src="images/ficus/training-10000.gif">
+                </div>
+    
+                <div class="one-third column category" style="text-align: center;">
+                <h5 class="docs-header">Final</h5>
+                <img class="u-max-full-width" src="images/ficus/final.png">
+                </div>
+    
+                <div class="one-third column category" style="text-align: center;">
+                <h5 class="docs-header">Ground Truth</h5>
+                <img class="u-max-full-width" src="images/ficus/ground_truth.png">
+            </div>
+        </div>  
+
+        <div class="row">
+            <div class="one-third column category" style="text-align: center;">
+                <img class="u-max-full-width" src="images/materials/training-10000.gif">
+                </div>
+    
+                <div class="one-third column category" style="text-align: center;">
+                <img class="u-max-full-width" src="images/materials/final.png">
+                </div>
+    
+                <div class="one-third column category" style="text-align: center;">
+                <img class="u-max-full-width" src="images/materials/ground_truth.png">
+            </div>
+        </div>  
 
     <div class="docs-section" id="references">
         <h3 class="section-heading">References</h3>

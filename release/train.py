@@ -168,7 +168,7 @@ def main(args: argparse.Namespace):
     frames[-1].save(
         os.path.join(path, "final.png")
     )
-    gt = Image.fromarray(view['gt_image'])
+    gt = Image.fromarray((test_view['gt_image']*255.).to(torch.uint8).numpy())
     gt.save(
         os.path.join(path, "ground_truth.png")
     )
