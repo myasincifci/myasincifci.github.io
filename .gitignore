@@ -1,0 +1,16 @@
+# Hugo default output
+/public
+/resources
+/_resources
+
+# Hugo binary
+/hugo
+/hugo_extended_*
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Editor specific
+.vscode/
+.idea/
