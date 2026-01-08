@@ -16,13 +16,13 @@ minify:
 
 params:
   env: production
-  title: "Lil'Log Clone"
-  description: "A clone of Lillian Weng's blog"
+  title: "Yasin Cifci's Blog"
+  description: "This is my personal blog"
   keywords: [Blog, Portfolio, PaperMod]
   author: "Yasin Cifci"
   images: ["<link or path of image for opengraph, twitter-cards>"]
   DateFormat: "January 2, 2006"
-  defaultTheme: auto # dark, light
+  defaultTheme: dark
   disableThemeToggle: false
 
   ShowReadingTime: true
@@ -51,7 +51,7 @@ params:
     safari_pinned_tab: "<link / abs url>"
 
   label:
-    text: "Lil'Log Clone"
+    text: "Yasin Cifci's Blog"
     icon: /apple-touch-icon.png
     iconHeight: 35
 
@@ -73,7 +73,7 @@ params:
   # home-info mode
   homeInfoParams:
     Title: "Hi there \U0001F44B"
-    Content: Welcome to my blog. This is a clone of Lil'Log.
+    Content: Welcome to my blog. This is my personal blog.
 
   socialIcons:
     - name: github
