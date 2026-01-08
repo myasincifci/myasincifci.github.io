@@ -83,7 +83,7 @@ This section goes over the render process that consists of the projection and ra
 
 Let $\mathbf{K}$ be the pinhole projection matrix. Then the projection of the mean is computed as
 
-$$\pmb{\mu}_{\text{2D}} = \begin{bmatrix}x'/z' \\ y'/z'\end{bmatrix} , \begin{bmatrix} \mu_x' \\ \mu_y'\\ \mu_z'\end{bmatrix}= \mathbf K \begin{bmatrix}\mu_x \\ \mu_y\\ \mu_z\end{bmatrix}.$$
+$$\pmb{\mu}\_{\text{2D}} = \begin{bmatrix}x'/z' \\ y'/z'\end{bmatrix} , \begin{bmatrix} \mu_x' \\ \mu_y'\\ \mu_z'\end{bmatrix}= \mathbf K \begin{bmatrix}\mu_x \\ \mu_y\\ \mu_z\end{bmatrix}.$$
 
 ![EWA Splatting](images/ewa_splatting.png)
 *Figure 2: Applying $\mathbf{K}$ directly (Figure from [3])*
@@ -92,7 +92,7 @@ Since the pinhole projection is not an affine transformation, the result of appl
 
 Therefore we are performing an affine approximation at the respective Gaussian's mean with:
 
-$$ \pmb{\Sigma}_{\text{2D}} = \mathbf{J}\pmb{\Sigma}\mathbf{J}^T $$
+$$ \pmb{\Sigma}\_{\text{2D}} = \mathbf{J}\pmb{\Sigma}\mathbf{J}^T $$
 
 where
 
@@ -111,7 +111,7 @@ Note: The calculations above assume that the camera is positioned at the origin.
 Once the Gaussians have been projected to the uv-plane, they can be rasterized by performing alpha blending. This is done with the following formula:
 
 $$
-C(\mathbf{x})=\sum_{i \in \mathcal{N}} c_i \alpha_i \prod_{j=1}^{i-1}\left(1-\alpha_j\right).
+C(\mathbf{x})=\sum\_{i \in \mathcal{N}} c_i \alpha_i \prod\_{j=1}^{i-1}\left(1-\alpha_j\right).
 $$
 
 It states that the color value $C$ at a pixel coordinate $\mathbf{x}$ is computed by blending each Gaussians color weighted by it's alpha value iterating from the closest to the farthest Gaussian in the set of depth-sorted Gaussians $\mathcal{N}$. The overall transparency $\alpha_i$ is computed as
@@ -136,7 +136,7 @@ b & c
 it's eigenvalues can be computed as
 
 $$
-\lambda_1, \lambda_2 = \frac{1}{2} (a + d\pm\sqrt{  a^2 - 2ad + 4b^2 + d^2}).
+\lambda\_1, \lambda\_2 = \frac{1}{2} (a + d\pm\sqrt{  a^2 - 2ad + 4b^2 + d^2}).
 $$
 
 and the orientation can be computed as
@@ -145,7 +145,7 @@ $$
 \theta = \begin{cases} 
 0 & b = 0 \land a \geq c \\
 \frac{\pi}{2} & b = 0 \land a \lt c \\
-atan2(\lambda_1 - a, b) & \text{else} 
+atan2(\lambda\_1 - a, b) & \text{else} 
 \end{cases}
 $$
 
@@ -156,7 +156,7 @@ cos(\theta) & -sin(\theta)\\
 sin(\theta) & cos(\theta)
 \end{bmatrix}.$$
 
-Then, we construct a rectangle with the radii $r_1 = \sqrt{\lambda_1}$ and $r_2 = \sqrt{\lambda_2}$ and rotate it using the rotation matrix to get the final bounding-box.
+Then, we construct a rectangle with the radii $r\_1 = \sqrt{\lambda\_1}$ and $r\_2 = \sqrt{\lambda\_2}$ and rotate it using the rotation matrix to get the final bounding-box.
 
 # Implementation
 
