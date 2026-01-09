@@ -43,35 +43,49 @@ Note that the training procedure shown in figure 1 also includes an "Adaptive De
 
 Before diving deeper into the theorethical details, we will first formalize how we are representing Gaussians: A Gaussian can be evaluated at a coordinate $\mathbf{x}$ using it's probability density function:
 
-$$G(\pmb{x}) = N e^{- \frac{1}{2}(\pmb{x} - \pmb{\mu})^T \pmb{\Sigma}^{-1}(\pmb{x} - \pmb{\mu})}$$
+$$
+    G(\pmb{x}) = N e^{- \frac{1}{2}(\pmb{x} - \pmb{\mu})^T \pmb{\Sigma}^{-1}(\pmb{x} - \pmb{\mu})}
+$$
 
 with mean:
 
-$$\pmb{\mu} = (\mu_x,\mu_y,\mu_z)^T, \text{where} x,y,z \in \mathbb{R}$$
+$$
+    \pmb{\mu} = (\mu_x,\mu_y,\mu_z)^T, \text{where} x,y,z \in \mathbb{R}
+$$
 
 covariance matrix:
 
-$$\pmb{\Sigma} \in \mathbb{R}^{3 \times 3}$$
+$$
+    \pmb{\Sigma} \in \mathbb{R}^{3 \times 3}
+$$
 
 and normalization factor $N$.
 
 Because the covariance matrix must be positive semi-definite, this property needs to be upheld during the optimization process. To achieve this it is decomposed into a rotation matrix $\mathbf{R}$ and a scaling matrix $\mathbf{S}$ which can be optimzed independently without a constraint and from which a positive semi-definite covariance matrix can be reconstructed:
 
-$$\pmb{\Sigma} = \mathbf{R}\mathbf{S}\mathbf{S}^T\mathbf{R}^T.$$
+$$
+    \pmb{\Sigma} = \mathbf{R}\mathbf{S}\mathbf{S}^T\mathbf{R}^T.
+$$
 
 $\mathbf{S}$ can be condensed into $\mathbf{s}=(s_x, s_y, s_z)^T$ and likewise $\mathbf{R}$ can be represented by a quaternion $\mathbf{s}=(q_x, q_y, q_z, q_w)^T$.
 
 Next, we also need to assign a color value to the Gaussian. In the reference implementation this is realized using spherical harmonics. This allows to not only represent a static color value but a viewing angle dependent color. However for the sake of simplicity we will model the color using a single RGB color value:
 
-$$\mathbf{c} = (r,g,b),~\text{where}~ r,g,b \in [0,1].$$
+$$
+    \mathbf{c} = (r,g,b),~\text{where}~ r,g,b \in [0,1].
+$$
 
 Finally we note that because of the normalization constant $N$, the opacity of the Gaussian will change with it's covariance matrix. To disentangle the opacity from the covariance we omit the normalization and instead replace it with an opacity parameter:
 
-$$o \in [0,1].$$
+$$
+    o \in [0,1].
+$$
 
 As a result we define the following representation of a Gaussian:
 
-$$\mathbf{g} = (\pmb{\mu}, \mathbf{s}, \mathbf{q}, \mathbf{c}, o)^T \in \mathbb{R}^{14}$$
+$$
+    \mathbf{g} = (\pmb{\mu}, \mathbf{s}, \mathbf{q}, \mathbf{c}, o)^T \in \mathbb{R}^{14}
+$$
 
 (Note: $\mathbf{c}$ and $o$ are clipped into the correct range during rendering.)
 
@@ -83,7 +97,9 @@ This section goes over the render process that consists of the projection and ra
 
 Let $\mathbf{K}$ be the pinhole projection matrix. Then the projection of the mean is computed as
 
-$$\pmb{\mu}\_{\text{2D}} = \begin{bmatrix}x'/z' \\ y'/z'\end{bmatrix} , \begin{bmatrix} \mu_x' \\ \mu_y'\\ \mu_z'\end{bmatrix}= \mathbf K \begin{bmatrix}\mu_x \\ \mu_y\\ \mu_z\end{bmatrix}.$$
+$$
+    \pmb{\mu}\_{\text{2D}} = \begin{bmatrix}x'/z' \\ y'/z'\end{bmatrix} , \begin{bmatrix} \mu_x' \\ \mu_y'\\ \mu_z'\end{bmatrix}= \mathbf K \begin{bmatrix}\mu_x \\ \mu_y\\ \mu_z\end{bmatrix}.
+$$
 
 ![EWA Splatting](images/ewa_splatting.png)
 *Figure 2: Applying $\mathbf{K}$ directly (Figure from [3])*
@@ -92,14 +108,17 @@ Since the pinhole projection is not an affine transformation, the result of appl
 
 Therefore we are performing an affine approximation at the respective Gaussian's mean with:
 
-$$ \pmb{\Sigma}\_{\text{2D}} = \mathbf{J}\pmb{\Sigma}\mathbf{J}^T $$
+$$ 
+    \pmb{\Sigma}\_{\text{2D}} = \mathbf{J}\pmb{\Sigma}\mathbf{J}^T 
+$$
 
 where
 
-$$ \mathbf{J}(\pmb{\mu}) = \begin{bmatrix}
-\frac{f_x}{\mu_z} & 0 & -\frac{f_x\mu_x}{\mu_z^2} \\
-0 & \frac{f_y}{\mu_z} & -\frac{f_y\mu_y}{\mu_z^2} \\
-\end{bmatrix}
+$$ 
+    \mathbf{J}(\pmb{\mu}) = \begin{bmatrix}
+    \frac{f_x}{\mu_z} & 0 & -\frac{f_x\mu_x}{\mu_z^2} \\
+    0 & \frac{f_y}{\mu_z} & -\frac{f_y\mu_y}{\mu_z^2} \\
+    \end{bmatrix}
 $$
 
 and $\mathbf{f} = (f_x, f_y)^T$ is the cameras focal point (as described in [3]).
@@ -111,12 +130,14 @@ Note: The calculations above assume that the camera is positioned at the origin.
 Once the Gaussians have been projected to the uv-plane, they can be rasterized by performing alpha blending. This is done with the following formula:
 
 $$
-C(\mathbf{x})=\sum\_{i \in \mathcal{N}} c_i \alpha_i \prod\_{j=1}^{i-1}\left(1-\alpha_j\right).
+    C(\mathbf{x})=\sum\_{i \in \mathcal{N}} c_i \alpha_i \prod\_{j=1}^{i-1}\left(1-\alpha_j\right).
 $$
 
 It states that the color value $C$ at a pixel coordinate $\mathbf{x}$ is computed by blending each Gaussians color weighted by it's alpha value iterating from the closest to the farthest Gaussian in the set of depth-sorted Gaussians $\mathcal{N}$. The overall transparency $\alpha_i$ is computed as
 
-$$ \alpha_i = o_i G(x).$$
+$$ 
+    \alpha_i = o_i G(x).
+$$
 
 ### Tile Based Rendering
 
@@ -128,33 +149,37 @@ To achieve this, the canvas is first partitioned into square tiles. An oriented 
 
 Given a 2x2 Covariance Matrix
 
-$$\mathbf{A} = \begin{bmatrix}
-a & b\\
-b & c
-\end{bmatrix}$$
+$$
+    \mathbf{A} = \begin{bmatrix}
+        a & b \\
+        b & c
+    \end{bmatrix}
+$$
 
 it's eigenvalues can be computed as
 
 $$
-\lambda\_1, \lambda\_2 = \frac{1}{2} (a + d\pm\sqrt{  a^2 - 2ad + 4b^2 + d^2}).
+    \lambda\_1, \lambda\_2 = \frac{1}{2} (a + d\pm\sqrt{  a^2 - 2ad + 4b^2 + d^2}).
 $$
 
 and the orientation can be computed as
 
 $$
-\theta = \begin{cases}
-0 & b = 0 \land a \geq c \\
-\frac{\pi}{2} & b = 0 \land a \lt c \\
-atan2(\lambda\_1 - a, b) & \text{else}
-\end{cases}
+    \theta = \begin{cases}
+    0 & b = 0 \land a \geq c \\
+    \frac{\pi}{2} & b = 0 \land a \lt c \\
+    atan2(\lambda\_1 - a, b) & \text{else}
+    \end{cases}
 $$
 
 from which we construct the rotation matrix
 
-$$\mathbf{R} = \begin{bmatrix}
-cos(\theta) & -sin(\theta)\\
-sin(\theta) & cos(\theta)
-\end{bmatrix}.$$
+$$
+    \mathbf{R} = \begin{bmatrix}
+    cos(\theta) & -sin(\theta)\\
+    sin(\theta) & cos(\theta)
+    \end{bmatrix}.
+$$
 
 Then, we construct a rectangle with the radii $r\_1 = \sqrt{\lambda\_1}$ and $r\_2 = \sqrt{\lambda\_2}$ and rotate it using the rotation matrix to get the final bounding-box.
 
